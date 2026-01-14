@@ -1,4 +1,4 @@
-[简体中文](README_ZH.md)
+[简体中文](README_ZH.md) | [한국어](README_KR.md)
 
 # Claude Cowork
 
