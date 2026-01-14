@@ -2,15 +2,19 @@ import { claudeCodeEnv } from "./claude-settings.js";
 import { unstable_v2_prompt } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKResultMessage } from "@anthropic-ai/claude-agent-sdk";
 import { app } from "electron";
-import { join } from "path";
-import { homedir } from "os";
+import { join, delimiter } from "path";
+import { homedir, platform } from "os";
 
 // Get Claude Code CLI path for packaged app
 export function getClaudeCodePath(): string | undefined {
   if (app.isPackaged) {
     return join(
       process.resourcesPath,
-      'app.asar.unpacked/node_modules/@anthropic-ai/claude-agent-sdk/cli.js'
+      'app.asar.unpacked',
+      'node_modules',
+      '@anthropic-ai',
+      'claude-agent-sdk',
+      'cli.js'
     );
   }
   return undefined;
@@ -19,21 +23,30 @@ export function getClaudeCodePath(): string | undefined {
 // Build enhanced PATH for packaged environment
 export function getEnhancedEnv(): Record<string, string | undefined> {
   const home = homedir();
-  const additionalPaths = [
-    '/usr/local/bin',
-    '/opt/homebrew/bin',
-    `${home}/.bun/bin`,
-    `${home}/.nvm/versions/node/v20.0.0/bin`,
-    `${home}/.nvm/versions/node/v22.0.0/bin`,
-    `${home}/.nvm/versions/node/v18.0.0/bin`,
-    `${home}/.volta/bin`,
-    `${home}/.fnm/aliases/default/bin`,
-    '/usr/bin',
-    '/bin',
-  ];
+  const isWin = platform() === 'win32';
+
+  const additionalPaths = isWin
+    ? [
+        `${home}\\.bun\\bin`,
+        `${home}\\AppData\\Local\\Volta\\bin`,
+        `${home}\\AppData\\Roaming\\npm`,
+        `C:\\Program Files\\nodejs`
+      ]
+    : [
+        '/usr/local/bin',
+        '/opt/homebrew/bin',
+        `${home}/.bun/bin`,
+        `${home}/.nvm/versions/node/v20.0.0/bin`,
+        `${home}/.nvm/versions/node/v22.0.0/bin`,
+        `${home}/.nvm/versions/node/v18.0.0/bin`,
+        `${home}/.volta/bin`,
+        `${home}/.fnm/aliases/default/bin`,
+        '/usr/bin',
+        '/bin',
+      ];
 
   const currentPath = process.env.PATH || '';
-  const newPath = [...additionalPaths, currentPath].join(':');
+  const newPath = [...additionalPaths, currentPath].join(delimiter);
 
   return {
     ...process.env,
